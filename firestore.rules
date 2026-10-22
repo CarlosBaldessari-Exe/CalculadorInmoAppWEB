@@ -1,0 +1,172 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'marianobaldessari14@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validation helpers
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'nombre', 'email', 'porcentajeComisionPersonal', 'rol']) &&
+        data.keys().hasOnly(['uid', 'nombre', 'email', 'porcentajeComisionPersonal', 'rol', 'telefono', 'fotoUrl', 'createdAt', 'updatedAt']) &&
+        data.uid is string && data.uid.size() <= 128 &&
+        data.nombre is string && data.nombre.size() > 0 && data.nombre.size() <= 100 &&
+        data.email is string && data.email.size() > 0 && data.email.size() <= 150 &&
+        data.porcentajeComisionPersonal is number && data.porcentajeComisionPersonal >= 0.0 && data.porcentajeComisionPersonal <= 1.0 &&
+        data.rol in ['asesor', 'administrador', 'broker'] &&
+        (!('telefono' in data) || (data.telefono is string && data.telefono.size() <= 30)) &&
+        (!('fotoUrl' in data) || (data.fotoUrl is string && data.fotoUrl.size() <= 500)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidProperty(data) {
+      return data.keys().hasAll(['titulo', 'tipoOperacion', 'precio', 'moneda', 'asesorId', 'estado']) &&
+        data.titulo is string && data.titulo.size() > 0 && data.titulo.size() <= 150 &&
+        data.tipoOperacion in ['venta', 'alquiler_anual', 'alquiler_temporal'] &&
+        data.precio is number && data.precio >= 0 &&
+        data.moneda in ['USD', 'UYU'] &&
+        data.asesorId is string && data.asesorId.size() <= 128 &&
+        data.estado in ['disponible', 'reservada', 'vendida', 'alquilada'] &&
+        (!('direccion' in data) || (data.direccion is string && data.direccion.size() <= 200)) &&
+        (!('ciudad' in data) || (data.ciudad is string && data.ciudad.size() <= 100)) &&
+        (!('barrio' in data) || (data.barrio is string && data.barrio.size() <= 100)) &&
+        (!('dormitorios' in data) || (data.dormitorios is number)) &&
+        (!('banios' in data) || (data.banios is number)) &&
+        (!('metraje' in data) || (data.metraje is number)) &&
+        (!('anioCompra' in data) || (data.anioCompra is number)) &&
+        (!('valorCompra' in data) || (data.valorCompra is number)) &&
+        (!('valorCatastral' in data) || (data.valorCatastral is number)) &&
+        (!('alquilerMensualEstimado' in data) || (data.alquilerMensualEstimado is number)) &&
+        (!('gastosAnualesEstimados' in data) || (data.gastosAnualesEstimados is number)) &&
+        (!('propietarioNombre' in data) || (data.propietarioNombre is string && data.propietarioNombre.size() <= 100)) &&
+        (!('propietarioContacto' in data) || (data.propietarioContacto is string && data.propietarioContacto.size() <= 100)) &&
+        (!('asesorNombre' in data) || (data.asesorNombre is string && data.asesorNombre.size() <= 100)) &&
+        (!('notas' in data) || (data.notas is string && data.notas.size() <= 2000)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidCommission(data) {
+      return data.keys().hasAll(['tipoOperacion', 'montoOperacion', 'moneda', 'asesorId', 'totalComisionConIVA']) &&
+        data.tipoOperacion in ['venta', 'alquiler_anual', 'alquiler_temporal', 'tres_porciento', 'rentabilidad', 'itp', 'irpf'] &&
+        data.montoOperacion is number && data.montoOperacion >= 0 &&
+        data.moneda in ['USD', 'UYU'] &&
+        data.asesorId is string && data.asesorId.size() <= 128 &&
+        data.totalComisionConIVA is number &&
+        (!('propertyId' in data) || (data.propertyId is string && data.propertyId.size() <= 128)) &&
+        (!('propertyTitulo' in data) || (data.propertyTitulo is string && data.propertyTitulo.size() <= 150)) &&
+        (!('puntas' in data) || (data.puntas is number)) &&
+        (!('porcentajeComision' in data) || (data.porcentajeComision is number)) &&
+        (!('comisionInmobiliaria' in data) || (data.comisionInmobiliaria is number)) &&
+        (!('ivaMonto' in data) || (data.ivaMonto is number)) &&
+        (!('porcentajeAsesor' in data) || (data.porcentajeAsesor is number)) &&
+        (!('comisionAsesor' in data) || (data.comisionAsesor is number)) &&
+        (!('comisionAgencia' in data) || (data.comisionAgencia is number)) &&
+        (!('irpfCalculado' in data) || (data.irpfCalculado is number)) &&
+        (!('itpCalculado' in data) || (data.itpCalculado is number)) &&
+        (!('rentabilidadBruta' in data) || (data.rentabilidadBruta is number)) &&
+        (!('rentabilidadNeta' in data) || (data.rentabilidadNeta is number)) &&
+        (!('estado' in data) || (data.estado in ['borrador', 'pendiente', 'cobrada', 'liquidada'])) &&
+        (!('asesorNombre' in data) || (data.asesorNombre is string && data.asesorNombre.size() <= 100)) &&
+        (!('clienteNombre' in data) || (data.clienteNombre is string && data.clienteNombre.size() <= 100)) &&
+        (!('fechaOperacion' in data) || (data.fechaOperacion is string && data.fechaOperacion.size() <= 50)) &&
+        (!('notas' in data) || (data.notas is string && data.notas.size() <= 2000)) &&
+        (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidSetting(data) {
+      return data.keys().hasAll(['iva', 'comisionVentaStandard', 'itp']) &&
+        data.iva is number && data.comisionVentaStandard is number && data.itp is number &&
+        (!('comisionVentaAmbasPuntas' in data) || (data.comisionVentaAmbasPuntas is number)) &&
+        (!('comisionAlquilerAnualMeses' in data) || (data.comisionAlquilerAnualMeses is number)) &&
+        (!('comisionAlquilerTemporalPct' in data) || (data.comisionAlquilerTemporalPct is number)) &&
+        (!('comisionTresPorciento' in data) || (data.comisionTresPorciento is number)) &&
+        (!('irpfAnt2007' in data) || (data.irpfAnt2007 is number)) &&
+        (!('irpfPost2007' in data) || (data.irpfPost2007 is number)) &&
+        (!('comisionPersonalDefault' in data) || (data.comisionPersonalDefault is number)) &&
+        (!('updatedBy' in data) || (data.updatedBy is string && data.updatedBy.size() <= 128)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(userId) && (
+        (request.auth.uid == userId && incoming().uid == request.auth.uid && isValidUser(incoming()) && incoming().rol == 'asesor') ||
+        (isAdmin() && isValidUser(incoming()))
+      );
+      allow update: if isSignedIn() && isValidId(userId) && isValidUser(incoming()) && (
+        (request.auth.uid == userId && incoming().uid == request.auth.uid && incoming().rol == existing().rol) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 2. Properties collection
+    match /properties/{propertyId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(propertyId) && isValidProperty(incoming()) && (
+        incoming().asesorId == request.auth.uid || isAdmin()
+      );
+      allow update: if isSignedIn() && isValidId(propertyId) && isValidProperty(incoming()) && (
+        existing().asesorId == request.auth.uid || isAdmin()
+      );
+      allow delete: if isSignedIn() && isValidId(propertyId) && (
+        existing().asesorId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // 3. Commissions collection
+    match /commissions/{commissionId} {
+      allow get: if isSignedIn() && (existing().asesorId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.asesorId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(commissionId) && isValidCommission(incoming()) && (
+        incoming().asesorId == request.auth.uid || isAdmin()
+      );
+      allow update: if isSignedIn() && isValidId(commissionId) && isValidCommission(incoming()) && (
+        isAdmin() ||
+        (existing().asesorId == request.auth.uid && existing().estado != 'liquidada')
+      );
+      allow delete: if isSignedIn() && isValidId(commissionId) && (
+        isAdmin() || (existing().asesorId == request.auth.uid && existing().estado != 'liquidada')
+      );
+    }
+
+    // 4. Agency Settings collection
+    match /settings/{settingId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow write: if isAdmin() && isValidId(settingId) && isValidSetting(incoming());
+    }
+  }
+}

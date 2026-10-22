@@ -1,0 +1,8 @@
+{
+  "name": "Calculador Inmobiliario Pro",
+  "description": "Plataforma de gestión y cálculos inmobiliarios en tiempo real: comisiones, IRPF, ITP, rentabilidad, usuarios y propiedades sincronizados con Firebase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

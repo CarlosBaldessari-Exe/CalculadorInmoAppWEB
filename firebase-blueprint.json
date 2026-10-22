@@ -1,0 +1,126 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Perfil del usuario asesor o administrador inmobiliario",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "nombre": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 150 },
+        "porcentajeComisionPersonal": { "type": "number" },
+        "rol": { "type": "string", "enum": ["asesor", "administrador", "broker"], "maxLength": 30 },
+        "telefono": { "type": "string", "maxLength": 30 },
+        "fotoUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["uid", "nombre", "email", "porcentajeComisionPersonal", "rol"]
+    },
+    "Property": {
+      "title": "Property",
+      "description": "Propiedad inmobiliaria en cartera para venta o alquiler",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "titulo": { "type": "string", "maxLength": 150 },
+        "tipoOperacion": { "type": "string", "enum": ["venta", "alquiler_anual", "alquiler_temporal"], "maxLength": 30 },
+        "precio": { "type": "number" },
+        "moneda": { "type": "string", "enum": ["USD", "UYU"], "maxLength": 5 },
+        "direccion": { "type": "string", "maxLength": 200 },
+        "ciudad": { "type": "string", "maxLength": 100 },
+        "barrio": { "type": "string", "maxLength": 100 },
+        "dormitorios": { "type": "number" },
+        "banios": { "type": "number" },
+        "metraje": { "type": "number" },
+        "anioCompra": { "type": "number" },
+        "valorCompra": { "type": "number" },
+        "valorCatastral": { "type": "number" },
+        "alquilerMensualEstimado": { "type": "number" },
+        "gastosAnualesEstimados": { "type": "number" },
+        "estado": { "type": "string", "enum": ["disponible", "reservada", "vendida", "alquilada"], "maxLength": 30 },
+        "propietarioNombre": { "type": "string", "maxLength": 100 },
+        "propietarioContacto": { "type": "string", "maxLength": 100 },
+        "asesorId": { "type": "string", "maxLength": 128 },
+        "asesorNombre": { "type": "string", "maxLength": 100 },
+        "notas": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["titulo", "tipoOperacion", "precio", "moneda", "asesorId", "estado"]
+    },
+    "Commission": {
+      "title": "Commission",
+      "description": "Registro y cálculo de comisiones inmobiliarias e impuestos asociados",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitulo": { "type": "string", "maxLength": 150 },
+        "tipoOperacion": { "type": "string", "enum": ["venta", "alquiler_anual", "alquiler_temporal", "tres_porciento", "rentabilidad", "itp", "irpf"], "maxLength": 30 },
+        "montoOperacion": { "type": "number" },
+        "moneda": { "type": "string", "enum": ["USD", "UYU"], "maxLength": 5 },
+        "puntas": { "type": "number" },
+        "porcentajeComision": { "type": "number" },
+        "comisionInmobiliaria": { "type": "number" },
+        "ivaMonto": { "type": "number" },
+        "totalComisionConIVA": { "type": "number" },
+        "porcentajeAsesor": { "type": "number" },
+        "comisionAsesor": { "type": "number" },
+        "comisionAgencia": { "type": "number" },
+        "irpfCalculado": { "type": "number" },
+        "itpCalculado": { "type": "number" },
+        "rentabilidadBruta": { "type": "number" },
+        "rentabilidadNeta": { "type": "number" },
+        "estado": { "type": "string", "enum": ["borrador", "pendiente", "cobrada", "liquidada"], "maxLength": 30 },
+        "asesorId": { "type": "string", "maxLength": 128 },
+        "asesorNombre": { "type": "string", "maxLength": 100 },
+        "clienteNombre": { "type": "string", "maxLength": 100 },
+        "fechaOperacion": { "type": "string", "maxLength": 50 },
+        "notas": { "type": "string", "maxLength": 2000 },
+        "createdAt": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["tipoOperacion", "montoOperacion", "moneda", "asesorId", "totalComisionConIVA"]
+    },
+    "AgencySetting": {
+      "title": "AgencySetting",
+      "description": "Configuración global de tasas e impuestos de la agencia inmobiliaria",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "iva": { "type": "number" },
+        "comisionVentaStandard": { "type": "number" },
+        "comisionVentaAmbasPuntas": { "type": "number" },
+        "comisionAlquilerAnualMeses": { "type": "number" },
+        "comisionAlquilerTemporalPct": { "type": "number" },
+        "comisionTresPorciento": { "type": "number" },
+        "irpfAnt2007": { "type": "number" },
+        "irpfPost2007": { "type": "number" },
+        "itp": { "type": "number" },
+        "comisionPersonalDefault": { "type": "number" },
+        "updatedBy": { "type": "string", "maxLength": 128 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["iva", "comisionVentaStandard", "itp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Perfiles de asesores y administradores de la inmobiliaria"
+    },
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Cartera de propiedades registradas en la inmobiliaria"
+    },
+    "/commissions/{commissionId}": {
+      "schema": "Commission",
+      "description": "Cálculos y liquidaciones de comisiones inmobiliarias sincronizadas"
+    },
+    "/settings/{settingId}": {
+      "schema": "AgencySetting",
+      "description": "Parámetros globales de cálculo y tasas impositivas de la agencia"
+    }
+  }
+}
